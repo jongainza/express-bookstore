@@ -5,9 +5,11 @@ const app = require("./app");
 const db = require("./db");
 const { beforeEach, afterEach, afterAll } = require("node:test");
 
+let book_isbn;
+
 beforeEach(async function () {
-  await db.query(
-    `INSERT INTO books (isbn,amazon_url,author,language,pages,publisher,title,year) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+  let result = await db.query(
+    `INSERT INTO books (isbn,amazon_url,author,language,pages,publisher,title,year) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING isbn`,
     [
       "0691161518",
       "http://a.co/eobPtX2",
@@ -19,6 +21,7 @@ beforeEach(async function () {
       2017,
     ]
   );
+  book_isbn = result.rows[0];
 });
 
 describe("POST/books", function () {
@@ -33,7 +36,7 @@ describe("POST/books", function () {
       title: "Breaking into txiki buho",
       year: 2023,
     });
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(201);
     expect(response.body).toEqual({
       book: {
         isbn: "0235678920",
